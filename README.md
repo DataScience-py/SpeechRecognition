@@ -7,7 +7,8 @@ It is useful for applications requiring voice input, such as voice assistants, a
 ## Technologies
 (This section will be updated as the project develops.)
 - Python
-- pytorch/tensorflow
+- pytorch
+- GRU model
 
 ## Features
 - Speech recognition from various sources (microphone, audio files) (add soon)
@@ -28,3 +29,9 @@ add soon
 - Python 3.8+
 - Dependencies listed in requirements.txt
 - Microphone (for live speech input) or WAV audio file (for file input)
+
+## Copleate
+|**model**      |**compleate**     |CTCLOSS  |**CER**   |**WER**   |**Additional training is needed**|**DATASET** |
+|---------------|------------------|---------|----------|----------|---------------------------------|------------|
+|**RNN MODEL**  |:heavy_check_mark:|0.7428   |0.235044  |0.7466    |True                             |COMMONVOICE |
+|**TRANSFORMER**| &cross;          |**None** |**None**  |**None**  |**None**                         |**None**    |
