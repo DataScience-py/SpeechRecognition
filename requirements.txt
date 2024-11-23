@@ -1,0 +1,4 @@
+torch~=2.5.0+cu124
+pandas~=2.2.3
+torchaudio~=2.5.0+cu124
+numpy~=1.26.3
