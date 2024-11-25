@@ -41,6 +41,8 @@ Apply layer norm to the input
 
 input: x: torch.Tensor (batch, channel, feature, time)
 
+layer norm (batch, channel, time, feature)
+
 output: x: torch.Tensor (batch, chanel, feature, time)
 
 ### ResidualCNN
