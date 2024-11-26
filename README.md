@@ -1,5 +1,9 @@
 # Speech Recognition System
 
+You can download the model from [Hugging Face Model Hub](https://huggingface.co/your-username/your-repository-name)
+
+[first model_scripted.pt save with TorchScript](https://huggingface.co/DataScience-py/SpeechRecognitionCNNGRUModel/blob/main/model_scripted.pt)
+
 ## Description
 
 This project is focused on speech recognition using modern machine learning and natural language processing techniques. The primary goal is to provide an accurate and efficient system that converts speech data into text.
