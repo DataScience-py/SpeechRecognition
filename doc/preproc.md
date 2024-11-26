@@ -17,7 +17,7 @@ pip install torch torchaudio pandas
 or
 
 ```bash
-pip3 install torch torchaudio pandas
+pip3 install -r requirements.txt
 ```
 
 ## Classes

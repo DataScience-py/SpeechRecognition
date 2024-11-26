@@ -15,7 +15,7 @@ pip install torch
 or
 
 ```bash
-pip3 install torch
+pip3 install -r requirements.txt
 ```
 
 ## Classes
