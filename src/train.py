@@ -6,8 +6,10 @@ import os
 import torch.optim as optim
 import torch
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
 
 # metric
+
 
 def avg_wer(wer_scores, combined_ref_len):
     return float(sum(wer_scores)) / float(combined_ref_len)
@@ -60,7 +62,7 @@ def _levenshtein_distance(ref, hyp):
     return distance[m % 2][n]
 
 
-def word_errors(reference, hypothesis, ignore_case=False, delimiter=' '):
+def word_errors(reference, hypothesis, ignore_case=False, delimiter=" "):
     """Compute the levenshtein distance between reference sequence and
     hypothesis sequence in word-level.
     :param reference: The reference sentence.
@@ -103,18 +105,18 @@ def char_errors(reference, hypothesis, ignore_case=False, remove_space=False):
         reference = reference.lower()
         hypothesis = hypothesis.lower()
 
-    join_char = ' '
+    join_char = " "
     if remove_space == True:
-        join_char = ''
+        join_char = ""
 
-    reference = join_char.join(filter(None, reference.split(' ')))
-    hypothesis = join_char.join(filter(None, hypothesis.split(' ')))
+    reference = join_char.join(filter(None, reference.split(" ")))
+    hypothesis = join_char.join(filter(None, hypothesis.split(" ")))
 
     edit_distance = _levenshtein_distance(reference, hypothesis)
     return float(edit_distance), len(reference)
 
 
-def wer(reference, hypothesis, ignore_case=False, delimiter=' '):
+def wer(reference, hypothesis, ignore_case=False, delimiter=" "):
     """Calculate word error rate (WER). WER compares reference text and
     hypothesis text in word-level. WER is defined as:
     .. math::
@@ -139,8 +141,7 @@ def wer(reference, hypothesis, ignore_case=False, delimiter=' '):
     :rtype: float
     :raises ValueError: If word number of reference is zero.
     """
-    edit_distance, ref_len = word_errors(reference, hypothesis, ignore_case,
-                                         delimiter)
+    edit_distance, ref_len = word_errors(reference, hypothesis, ignore_case, delimiter)
 
     if ref_len == 0:
         raise ValueError("Reference's word number should be greater than 0.")
@@ -176,8 +177,9 @@ def cer(reference, hypothesis, ignore_case=False, remove_space=False):
     :rtype: float
     :raises ValueError: If the reference length is zero.
     """
-    edit_distance, ref_len = char_errors(reference, hypothesis, ignore_case,
-                                         remove_space)
+    edit_distance, ref_len = char_errors(
+        reference, hypothesis, ignore_case, remove_space
+    )
 
     if ref_len == 0:
         ref_len = 1
@@ -187,6 +189,7 @@ def cer(reference, hypothesis, ignore_case=False, remove_space=False):
 
 
 # train and test loop
+
 
 class IterMeter(object):
     """keeps track of total iterations"""
@@ -201,7 +204,9 @@ class IterMeter(object):
         return self.val
 
 
-def train(model, device, train_loader, criterion, optimizer, scheduler, epoch, iter_meter):
+def train(
+    model, device, train_loader, criterion, optimizer, scheduler, epoch, iter_meter
+):
     model.train()
     data_len = len(train_loader.dataset)
     for batch_idx, _data in enumerate(train_loader):
@@ -222,15 +227,21 @@ def train(model, device, train_loader, criterion, optimizer, scheduler, epoch, i
         iter_meter.step()
         if batch_idx % 100 == 0 or batch_idx == data_len:
             pred, lab = GreedyDecoder(output.transpose(0, 1), labels, label_lengths)
-            print('Predicted: ', pred)
-            print('True: ', lab)
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(spectrograms), data_len,
-                       100. * batch_idx / len(train_loader), loss.item()))
+            print("Predicted: ", pred)
+            print("True: ", lab)
+            print(
+                "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                    epoch,
+                    batch_idx * len(spectrograms),
+                    data_len,
+                    100.0 * batch_idx / len(train_loader),
+                    loss.item(),
+                )
+            )
 
 
 def test(model, device, test_loader, criterion, epoch, iter_meter):
-    print('\nevaluating...')
+    print("\nevaluating...")
     model.eval()
     test_loss = 0
     test_cer, test_wer = [], []
@@ -246,7 +257,9 @@ def test(model, device, test_loader, criterion, epoch, iter_meter):
             loss = criterion(output, labels, input_lengths, label_lengths)
             test_loss += loss.item() / len(test_loader)
 
-            decoded_preds, decoded_targets = GreedyDecoder(output.transpose(0, 1), labels, label_lengths)
+            decoded_preds, decoded_targets = GreedyDecoder(
+                output.transpose(0, 1), labels, label_lengths
+            )
             for j in range(len(decoded_preds)):
                 test_cer.append(cer(decoded_targets[j], decoded_preds[j]))
                 test_wer.append(wer(decoded_targets[j], decoded_preds[j]))
@@ -255,10 +268,15 @@ def test(model, device, test_loader, criterion, epoch, iter_meter):
     avg_wer = sum(test_wer) / len(test_wer)
 
     print(
-        'Test set: Average loss: {:.4f}, Average CER: {:4f} Average WER: {:.4f}\n'.format(test_loss, avg_cer, avg_wer))
+        "Test set: Average loss: {:.4f}, Average CER: {:4f} Average WER: {:.4f}\n".format(
+            test_loss, avg_cer, avg_wer
+        )
+    )
 
 
-def main(learning_rate=5e-4, batch_size=20, epochs=10, train_dataset=None, test_dataset=None):
+def main(
+    learning_rate=5e-4, batch_size=20, epochs=10, train_dataset=None, test_dataset=None
+):
     try:
         hparams = {
             "n_cnn_layers": 3,
@@ -270,49 +288,73 @@ def main(learning_rate=5e-4, batch_size=20, epochs=10, train_dataset=None, test_
             "dropout": 0.1,
             "learning_rate": learning_rate,
             "batch_size": batch_size,
-            "epochs": epochs
+            "epochs": epochs,
         }
 
         use_cuda = torch.cuda.is_available()
         torch.manual_seed(7)
         device = torch.device("cuda" if use_cuda else "cpu")
 
-        kwargs = {'num_workers': 0, 'pin_memory': True} if use_cuda else {}
-        train_loader = DataLoader(dataset=train_dataset,
-                                       batch_size=hparams['batch_size'],
-                                       shuffle=True,
-                                       collate_fn=data_processing_train,
-                                       **kwargs)
-        test_loader = DataLoader(dataset=test_dataset,
-                                      batch_size=hparams['batch_size'],
-                                      shuffle=False,
-                                      collate_fn=data_processing_valid,
-                                      **kwargs)
+        kwargs = {"num_workers": 0, "pin_memory": True} if use_cuda else {}
+        train_loader = DataLoader(
+            dataset=train_dataset,  # type: ignore
+            batch_size=hparams["batch_size"],
+            shuffle=True,
+            collate_fn=data_processing_train,
+            **kwargs
+        )
+        test_loader = DataLoader(
+            dataset=test_dataset,  # type: ignore
+            batch_size=hparams["batch_size"],
+            shuffle=False,
+            collate_fn=data_processing_valid,
+            **kwargs
+        )
 
         model = SpeechRecognitionModel(
-            hparams['n_cnn_layers'], hparams['n_rnn_layers'], hparams['rnn_dim'],
-            hparams['n_class'], hparams['n_feats'], hparams['stride'], hparams['dropout']
+            hparams["n_cnn_layers"],
+            hparams["n_rnn_layers"],
+            hparams["rnn_dim"],
+            hparams["n_class"],
+            hparams["n_feats"],
+            hparams["stride"],
+            hparams["dropout"],
         ).to(device)
 
         print(model)
-        print('Num Model Parameters', sum([param.nelement() for param in model.parameters()]))
+        print(
+            "Num Model Parameters",
+            sum([param.nelement() for param in model.parameters()]),
+        )
 
-        optimizer = optim.AdamW(model.parameters(), hparams['learning_rate'])
+        optimizer = optim.AdamW(model.parameters(), hparams["learning_rate"])
         criterion = nn.CTCLoss(blank=34).to(device)
-        scheduler = optim.lr_scheduler.OneCycleLR(optimizer, max_lr=hparams['learning_rate'],
-                                                  steps_per_epoch=int(len(train_loader)),
-                                                  epochs=hparams['epochs'],
-                                                  anneal_strategy='linear')
+        scheduler = optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=hparams["learning_rate"],
+            steps_per_epoch=int(len(train_loader)),
+            epochs=hparams["epochs"],
+            anneal_strategy="linear",
+        )
 
         iter_meter = IterMeter()
         for epoch in range(1, epochs + 1):
-            train(model, device, train_loader, criterion, optimizer, scheduler, epoch, iter_meter)
+            train(
+                model,
+                device,
+                train_loader,
+                criterion,
+                optimizer,
+                scheduler,
+                epoch,
+                iter_meter,
+            )
             test(model, device, test_loader, criterion, epoch, iter_meter)
         return model
     except KeyboardInterrupt:
         try:
-            print('Caught KeyboardInterrupt, saving model...')
-            return model
+            print("Caught KeyboardInterrupt, saving model...")
+            return model  # type: ignore There will be an error if Model is not created
         except NameError:
             print("Model don't saving")
             raise KeyboardInterrupt
@@ -320,17 +362,17 @@ def main(learning_rate=5e-4, batch_size=20, epochs=10, train_dataset=None, test_
         print(e)
 
 
-if __name__ == '__main__':
-    AUDIO_DATA_PATH = 'Your\\path\\to\\audio\\directory'
-    TRAIN_DATA_PATH = 'Your\\path\\to\\audio\\data.csv'
-    VALID_DATA_PATH = 'Your\\path\\to\\audio\\data.csv'
+if __name__ == "__main__":
+    AUDIO_DATA_PATH = "Your\\path\\to\\audio\\directory"
+    TRAIN_DATA_PATH = "Your\\path\\to\\audio\\data.csv"
+    VALID_DATA_PATH = "Your\\path\\to\\audio\\data.csv"
     learning_rate = 7e-4  # 0.0007
     batch_size = 16
     epochs = 10
-    train_dataset = AudioDataset(TRAIN_DATA_PATH, AUDIO_DATA_PATH, sep='\t')
-    test_dataset = AudioDataset(VALID_DATA_PATH, AUDIO_DATA_PATH, sep='\t')
+    train_dataset = AudioDataset(TRAIN_DATA_PATH, AUDIO_DATA_PATH, sep="\t")
+    test_dataset = AudioDataset(VALID_DATA_PATH, AUDIO_DATA_PATH, sep="\t")
 
     model = main(learning_rate, batch_size, epochs, train_dataset, test_dataset)
     torch.save(model, "model.pt")
     model_scripted = torch.jit.script(model)  # Экспорт в TorchScript
-    model_scripted.save('model_scripted.pt')  # Сохранить
+    model_scripted.save("model_scripted.pt")  # Сохранить
