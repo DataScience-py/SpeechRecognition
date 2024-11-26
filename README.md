@@ -1,6 +1,6 @@
 # Speech Recognition System
 
-You can download the model from [Hugging Face Model Hub](https://huggingface.co/your-username/your-repository-name)
+You can download the model from [Hugging Face Model Hub]([https://huggingface.co/your-username/your-repository-name](https://huggingface.co/DataScience-py/SpeechRecognitionCNNGRUModel))
 
 [first model_scripted.pt save with TorchScript](https://huggingface.co/DataScience-py/SpeechRecognitionCNNGRUModel/blob/main/model_scripted.pt)
 
