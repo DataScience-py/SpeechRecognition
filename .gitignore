@@ -2,7 +2,8 @@
 ### Example user template
 
 # IntelliJ project files
-.idea
+.idea\
+.vscode
 *.iml
 out
 gen
