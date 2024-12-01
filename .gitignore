@@ -4,6 +4,7 @@
 # IntelliJ project files
 .idea\
 .vscode
+model/
 *.iml
 out
 gen
@@ -15,7 +16,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+*.log
 # Distribution / packaging
 .Python
 build/
