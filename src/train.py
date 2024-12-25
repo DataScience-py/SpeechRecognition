@@ -2,7 +2,6 @@
 from model import SpeechRecognitionModel
 from preproc import *
 import numpy as np
-import os
 import torch.optim as optim
 import torch
 import torch.nn.functional as F

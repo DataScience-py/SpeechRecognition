@@ -78,7 +78,7 @@ class TextTransform:
 text_transform = TextTransform()
 
 class AudioProcessor:
-    def __init__(self, sample_rate=16000, duration=4, transform=None, log_file='audio_processor.log', model_file_path='model//model_scripted.pt'):
+    def __init__(self, sample_rate=16000, duration=4, transform=None, log_file='audio_processor.log', model_file_path='model//model_1.pt'):
         self.sample_rate = sample_rate
         self.duration = duration
         self.transform = transform
@@ -159,7 +159,7 @@ class AudioProcessor:
         audio = self.record_audio()
         mel_spectrogram = self.process_audio(audio)
         output = self.send_to_model(mel_spectrogram)
-        return output
+        return output if output else "No text detected"
     
     
 audio_listen = AudioProcessor()
